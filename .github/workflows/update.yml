@@ -1,0 +1,32 @@
+name: 자동 날씨 업데이트
+
+on:
+  schedule:
+    - cron: "0 18 * * *" # 매일 오전 3시 (한국 시간 기준)
+  workflow_dispatch:
+
+jobs:
+  update-weather:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ✅ 리포지토리 체크아웃
+        uses: actions/checkout@v3
+
+      - name: ✅ Node.js 18 설치
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: 📦 의존성 설치
+        run: npm install
+        working-directory: project_eb_flutter_2/earlybird-functions/functions
+
+      - name: 🔥 Firebase 인증
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/sa-key.json
+        run: |
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > $GOOGLE_APPLICATION_CREDENTIALS
+
+      - name: 📡 update_weather.js 실행
+        run: node update_weather.js
+        working-directory: project_eb_flutter_2/earlybird-functions/functions
