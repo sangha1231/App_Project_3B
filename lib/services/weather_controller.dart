@@ -27,7 +27,7 @@ class WeatherController {
 
       final availableHours = [0, 3, 6, 9, 12, 15, 18, 21];
       final closestHour = availableHours.reduce(
-        (a, b) => (now.hour - a).abs() < (now.hour - b).abs() ? a : b,
+            (a, b) => (now.hour - a).abs() < (now.hour - b).abs() ? a : b,
       );
       final closestTime = _two(closestHour) + '00';
 
@@ -40,8 +40,8 @@ class WeatherController {
 
       String? getValue(String category) {
         final found = items.firstWhere(
-          (e) =>
-              e['category'] == category &&
+              (e) =>
+          e['category'] == category &&
               (category == 'TMX' || category == 'TMN'
                   ? true
                   : e['fcstTime'] == closestTime),
@@ -83,7 +83,7 @@ class WeatherController {
       List<Placemark> placemarks = await placemarkFromCoordinates(
         pos.latitude,
         pos.longitude,
-        localeIdentifier: 'ko',
+        // localeIdentifier 파라미터 제거
       );
       final place = placemarks.first;
       final List<String> candidates = [
@@ -112,7 +112,7 @@ class WeatherController {
 
     return {
       'base_date':
-          '${baseDate.year}${_two(baseDate.month)}${_two(baseDate.day)}',
+      '${baseDate.year}${_two(baseDate.month)}${_two(baseDate.day)}',
       'base_time': '${_two(selectedHour)}00',
     };
   }

@@ -1,5 +1,4 @@
 // lib/pages/news_page.dart
-
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../services/news_service.dart';
@@ -11,7 +10,6 @@ class NewsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mq          = MediaQuery.of(context);
-    final screenW     = mq.size.width;
     final bottomInset = mq.padding.bottom;
     const navHeight   = 60.0;
     const maxWidth    = 400.0;
@@ -19,15 +17,14 @@ class NewsPage extends StatelessWidget {
     return Scaffold(
       extendBody: true,
       backgroundColor: Colors.transparent,
-
       body: Stack(
         children: [
-          // 1) 배경 이미지 (sky.img)
+          // 배경 이미지
           Positioned.fill(
             child: Image.asset('assets/images/sky.png', fit: BoxFit.cover),
           ),
 
-          // 2) SafeArea → Center → 폭 제한
+          // 콘텐츠 영역
           SafeArea(
             child: Center(
               child: ConstrainedBox(
@@ -36,7 +33,7 @@ class NewsPage extends StatelessWidget {
                   children: [
                     const SizedBox(height: 16),
 
-                    // 3) 뒤로 가기 버튼 (glass)
+                    // 뒤로 가기 버튼
                     Align(
                       alignment: Alignment.topLeft,
                       child: ClipOval(
@@ -56,7 +53,7 @@ class NewsPage extends StatelessWidget {
 
                     const SizedBox(height: 8),
 
-                    // 4) 뉴스 리스트
+                    // 뉴스 리스트
                     Expanded(
                       child: FutureBuilder<List<NewsArticle>>(
                         future: NewsService().fetchNews(),
@@ -65,60 +62,85 @@ class NewsPage extends StatelessWidget {
                             return const Center(child: CircularProgressIndicator());
                           }
                           if (snap.hasError) {
-                            return Center(child: Text('오류: ${snap.error}', style: const TextStyle(color: Colors.white)));
+                            return Center(
+                              child: Text('오류: ${snap.error}', style: const TextStyle(color: Colors.white)),
+                            );
                           }
                           final articles = snap.data!;
 
-                          return ListView.separated(
-                            padding: EdgeInsets.only(
-                              top: 8,
-                              bottom: navHeight + bottomInset + 16,
-                            ),
-                            separatorBuilder: (_, __) => const SizedBox(height: 8),
-                            itemCount: articles.length,
-                            itemBuilder: (_, i) {
-                              final a = articles[i];
-                              // 날짜 + 시간 포맷
-                              final dt = a.publishedAt;
-                              final datePart = '${dt.year.toString().padLeft(4, '0')}-'
-                                  '${dt.month.toString().padLeft(2, '0')}-'
-                                  '${dt.day.toString().padLeft(2, '0')}';
-                              final timePart = '${dt.hour.toString().padLeft(2, '0')}:'
-                                  '${dt.minute.toString().padLeft(2, '0')}';
+                          return Scrollbar(
+                            thumbVisibility: true,       // 항상 스크롤바 보이기
+                            trackVisibility: true,       // 트랙도 보이기
+                            interactive: true,           // 드래그 가능
+                            child: ListView.builder(
+                              padding: EdgeInsets.only(
+                                top: 8,
+                                bottom: navHeight + bottomInset + 16,
+                              ),
+                              itemCount: articles.length,
+                              itemBuilder: (context, i) {
+                                final a = articles[i];
+                                final dt = a.publishedAt;
+                                final datePart = '${dt.year}-${dt.month.toString().padLeft(2,'0')}-${dt.day.toString().padLeft(2,'0')}';
+                                final timePart = '${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}';
 
-                              return ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: BackdropFilter(
-                                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                                  child: Container(
-                                    color: Colors.white.withOpacity(0.2),
-                                    child: ListTile(
-                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                      leading: a.imageUrl != null && a.imageUrl!.isNotEmpty
-                                          ? ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Image.network(a.imageUrl!, width: 60, fit: BoxFit.cover),
-                                      )
-                                          : null,
-                                      title: Text(
-                                        a.title,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: BackdropFilter(
+                                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(16),
+                                          border: Border.all(color: Colors.white.withOpacity(0.25)),
+                                        ),
+                                        child: ListTile(
+                                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                          leading: a.imageUrl != null && a.imageUrl!.isNotEmpty
+                                              ? ClipRRect(
+                                            borderRadius: BorderRadius.circular(8),
+                                            child: Image.network(
+                                              a.imageUrl!,
+                                              width: 80,
+                                              height: 80,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          )
+                                              : SizedBox(
+                                            width: 80,
+                                            height: 80,
+                                            child: Center(
+                                              child: Icon(
+                                                Icons.article,
+                                                size: 48,
+                                                color: Colors.blueAccent,
+                                              ),
+                                            ),
+                                          ),
+                                          title: Text(
+                                            a.title,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          subtitle: Text(
+                                            '$datePart $timePart',
+                                            style: const TextStyle(color: Colors.white70),
+                                          ),
+                                          onTap: () {
+                                            // 상세 보기 로직
+                                          },
                                         ),
                                       ),
-                                      subtitle: Text(
-                                        '$datePart $timePart',
-                                        style: const TextStyle(color: Colors.white70),
-                                      ),
-                                      onTap: () {
-                                        // 상세보기 로직
-                                      },
                                     ),
                                   ),
-                                ),
-                              );
-                            },
+                                );
+                              },
+                            ),
                           );
                         },
                       ),
@@ -131,7 +153,6 @@ class NewsPage extends StatelessWidget {
         ],
       ),
 
-      // ─── BOTTOM NAVIGATION BAR ───────────────────────
       bottomNavigationBar: SizedBox(
         height: navHeight + bottomInset,
         child: ClipRRect(
@@ -143,13 +164,23 @@ class NewsPage extends StatelessWidget {
               padding: EdgeInsets.only(bottom: bottomInset + 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.center,  // 세로 가운데 정렬 명시
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.home_outlined, size: 32, color: Colors.white),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(), // ★ 제약 해제 추가
+                    icon: const Icon(Icons.home_outlined, size: 40, color: Colors.white),
                     onPressed: () => Navigator.pushNamed(context, '/'),
                   ),
+                  Container(
+                    height: navHeight * 0.5,
+                    width: 1,
+                    color: Colors.white54,
+                  ),
                   IconButton(
-                    icon: const Icon(Icons.settings_outlined, size: 32, color: Colors.white),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(), // ★ 제약 해제 추가
+                    icon: const Icon(Icons.settings_outlined, size: 40, color: Colors.white),
                     onPressed: () => Navigator.pushNamed(context, '/settings'),
                   ),
                 ],

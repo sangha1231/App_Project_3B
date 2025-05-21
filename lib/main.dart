@@ -20,11 +20,11 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: '/',
       routes: {
-        '/':         (_) => const MainPage(),
-        '/weather':  (_) => const WeatherPage(),
-        '/news':     (_) => const NewsPage(),     // 추가
-        '/traffic':  (_) => const TrafficPage(),
-        '/note':     (_) => const NotePage(),
+        '/': (_) => const MainPage(),
+        '/weather': (_) => const WeatherPage(),
+        '/news': (_) => const NewsPage(), // 추가
+        '/traffic': (_) => const TrafficPage(),
+        '/note': (_) => const NotePage(),
         '/settings': (_) => const SettingsPage(),
       },
     );
