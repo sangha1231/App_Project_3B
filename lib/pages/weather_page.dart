@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../services/weather_controller.dart';
 import '../models/weather_data.dart';
 import '../services/vilage_forecast_service.dart';
+import '../services/dust_service.dart';
 
 class WeatherPage extends StatefulWidget {
   const WeatherPage({super.key});
@@ -22,6 +23,9 @@ class _WeatherPageState extends State<WeatherPage> {
     super.initState();
     controller = WeatherController(
       VilageForecastService(
+        "Ss1oqrxEJeZWB2n737U08XyxvdG6k2Uy5nNEwvX0LpBNyTrtrZEK2iDGCCioQXriqSaZIzoZv1HlnLxbIIO4Hw==",
+      ),
+      DustService(
         "Ss1oqrxEJeZWB2n737U08XyxvdG6k2Uy5nNEwvX0LpBNyTrtrZEK2iDGCCioQXriqSaZIzoZv1HlnLxbIIO4Hw==",
       ),
     );
@@ -56,6 +60,21 @@ class _WeatherPageState extends State<WeatherPage> {
       );
     }
 
+    // 미세먼지 상태 분류
+    final pm25 = weather!.pm25 ?? 0;
+    late Color dustColor;
+    late String dustStatus;
+    if (pm25 > 75) {
+      dustColor = Colors.red;
+      dustStatus = '심각';
+    } else if (pm25 > 35) {
+      dustColor = Colors.black;
+      dustStatus = '보통';
+    } else {
+      dustColor = Colors.lightGreen.shade400;
+      dustStatus = '쾌적';
+    }
+
     return Scaffold(
       extendBody: true,
       backgroundColor: Colors.transparent,
@@ -88,6 +107,7 @@ class _WeatherPageState extends State<WeatherPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // 메인 날씨 위젯 (2x2)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: AspectRatio(
@@ -121,6 +141,7 @@ class _WeatherPageState extends State<WeatherPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
+                  // 1x1 온도, 1x1 강수
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
@@ -137,23 +158,9 @@ class _WeatherPageState extends State<WeatherPage> {
                                     children: [
                                       Icon(Icons.thermostat, color: Colors.blueAccent),
                                       const SizedBox(width: 8),
-                                      Text(
-                                        '최저',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.blue.shade200,
-                                        ),
-                                      ),
+                                      Text('최저', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.blue.shade200)),
                                       const SizedBox(width: 4),
-                                      Text(
-                                        '${weather!.tmn}°C',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.blue.shade200,
-                                        ),
-                                      ),
+                                      Text('${weather!.tmn}°C', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.blue.shade200)),
                                     ],
                                   ),
                                   const SizedBox(height: 12),
@@ -162,23 +169,9 @@ class _WeatherPageState extends State<WeatherPage> {
                                     children: [
                                       Icon(Icons.thermostat, color: Colors.redAccent),
                                       const SizedBox(width: 8),
-                                      Text(
-                                        '최고',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.red.shade200,
-                                        ),
-                                      ),
+                                      Text('최고', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.red.shade200)),
                                       const SizedBox(width: 4),
-                                      Text(
-                                        '${weather!.tmx}°C',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.red.shade200,
-                                        ),
-                                      ),
+                                      Text('${weather!.tmx}°C', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.red.shade200)),
                                     ],
                                   ),
                                 ],
@@ -196,28 +189,47 @@ class _WeatherPageState extends State<WeatherPage> {
                                 children: [
                                   Icon(Icons.beach_access, color: Colors.lightBlueAccent),
                                   const SizedBox(width: 8),
-                                  Text(
-                                    '강수확률',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.lightBlue.shade200,
-                                    ),
-                                  ),
+                                  Text('강수확률', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.lightBlue.shade200)),
                                   const SizedBox(width: 4),
-                                  Text(
-                                    '${weather!.pop}%',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.lightBlue.shade200,
-                                    ),
+                                  Text('${weather!.pop}%', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.lightBlue.shade200)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // 1x1 미세먼지 위젯 (왼쪽 정렬)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: AspectRatio(
+                            aspectRatio: 1,
+                            child: _WidgetPanel(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Icon(Icons.grain, color: Colors.amber.shade800),
+                                  const SizedBox(width: 8),
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('미세먼지', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.amber.shade800)),
+                                      Text('$dustStatus (${weather!.pm25}㎍/㎥)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: dustColor)),
+                                    ],
                                   ),
                                 ],
                               ),
                             ),
                           ),
                         ),
+                        const SizedBox(width: 12),
+                        Expanded(flex: 1, child: Container()),
                       ],
                     ),
                   ),

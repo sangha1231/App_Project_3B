@@ -7,6 +7,8 @@ class WeatherData {
   final String? skyText;
   final String? weatherIcon;
   final String? error;
+  final String? dustGrade;
+  final int? pm25;
 
   WeatherData({
     required this.address,
@@ -17,5 +19,7 @@ class WeatherData {
     this.skyText,
     this.weatherIcon,
     this.error,
+    this.dustGrade,
+    this.pm25,
   });
 }

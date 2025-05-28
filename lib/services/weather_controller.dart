@@ -3,11 +3,14 @@ import 'package:geolocator/geolocator.dart';
 import '../models/weather_data.dart';
 import '../services/vilage_forecast_service.dart';
 import '../utils/geo_converter.dart';
+import '../services/dust_service.dart';
+
 
 class WeatherController {
   final VilageForecastService service;
+  final DustService dustService;
 
-  WeatherController(this.service);
+  WeatherController(this.service, this.dustService);
 
   Future<WeatherData> fetchWeather() async {
     try {
@@ -19,6 +22,10 @@ class WeatherController {
       }
 
       String address = await _getAddress(pos);
+      String province = _getProvinceFromAddress(address); // ✅ 도 이름 추출
+      final dustData = await dustService.fetchDust(pos); // ✅ 미세먼지 조회
+      final pm25 = dustData?.value ?? 0;
+      final dustGrade = dustData?.grade ?? '정보없음';
 
       final now = DateTime.now().toUtc().add(const Duration(hours: 9));
       final baseDateTime = _getBaseDateTime(now);
@@ -27,7 +34,7 @@ class WeatherController {
 
       final availableHours = [0, 3, 6, 9, 12, 15, 18, 21];
       final closestHour = availableHours.reduce(
-            (a, b) => (now.hour - a).abs() < (now.hour - b).abs() ? a : b,
+        (a, b) => (now.hour - a).abs() < (now.hour - b).abs() ? a : b,
       );
       final closestTime = _two(closestHour) + '00';
 
@@ -40,8 +47,8 @@ class WeatherController {
 
       String? getValue(String category) {
         final found = items.firstWhere(
-              (e) =>
-          e['category'] == category &&
+          (e) =>
+              e['category'] == category &&
               (category == 'TMX' || category == 'TMN'
                   ? true
                   : e['fcstTime'] == closestTime),
@@ -61,9 +68,20 @@ class WeatherController {
         tmn: getValue('TMN'),
         skyText: _skyDescription(sky),
         weatherIcon: _weatherIcon(sky, pty),
+        pm25: pm25, //
+        dustGrade: dustGrade, //
       );
     } catch (e) {
       return WeatherData(address: '위치 확인 불가', error: e.toString());
+    }
+  }
+
+  String _getProvinceFromAddress(String address) {
+    List<String> parts = address.split(' ');
+    if (parts.isNotEmpty) {
+      return parts.first;
+    } else {
+      return '서울특별시';
     }
   }
 
@@ -82,14 +100,13 @@ class WeatherController {
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(
         pos.latitude,
-        pos.longitude,
-        // localeIdentifier 파라미터 제거
+        pos.longitude
       );
       final place = placemarks.first;
       final List<String> candidates = [
         place.administrativeArea,
-        place.subAdministrativeArea,
-        place.locality
+        place.locality,
+        place.subLocality,
       ].whereType<String>().where((e) => e.isNotEmpty).toList();
 
       return candidates.isNotEmpty ? candidates.join(', ') : '위치 확인 불가';
@@ -112,7 +129,7 @@ class WeatherController {
 
     return {
       'base_date':
-      '${baseDate.year}${_two(baseDate.month)}${_two(baseDate.day)}',
+          '${baseDate.year}${_two(baseDate.month)}${_two(baseDate.day)}',
       'base_time': '${_two(selectedHour)}00',
     };
   }
