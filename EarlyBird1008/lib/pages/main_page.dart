@@ -184,21 +184,7 @@ class _MainPageState extends State<MainPage> {
             children: <Widget>[
               const SizedBox(
                 height: 70,
-                child: DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                  ),
-                  child: Center(
-                    child: Text(
-                      'Smart Life App',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
+               
               ),
               // 🚩 4. 사용자 계정 정보를 동적으로 표시
               UserAccountsDrawerHeader(
